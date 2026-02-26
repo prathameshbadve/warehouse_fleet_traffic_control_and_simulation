@@ -1,0 +1,15 @@
+ipykernel
+
+simpy
+networkx
+
+pandas
+numpy
+
+streamlit
+matplotlib
+
+pyyaml
+pytest
+
+reportlab

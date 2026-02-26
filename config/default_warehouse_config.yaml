@@ -1,0 +1,32 @@
+# Default warehouse configuration
+# Models an Amazon-style pod storage fulfillment center with paired one-way aisles
+
+warehouse:
+  n_highways: 4 # Total one-way aisles (must be even; forms 5 pairs)
+  n_aisles: 10 # Storage bays per aisle per highway segment
+  n_storage_cells_per_segment: 5
+  dist_between_storage_cells_m: 1.5 # Meters between bays along an aisle
+
+agv:
+  speed_mps: 1.5
+  init_battery_capacity: 100.0
+  battery_drain_without_pod_per_meter: 0.08
+  battery_drain_with_pod_per_meter: 0.12
+  battery_drain_per_storage_retrieval: 0.5
+  battery_charge_rate: 0.5
+  battery_threshold: 20.0
+  mean_pod_storage_retrieval_time_s: 3.0
+  picking_time_shape: 4.0
+  picking_time_scale: 0.5
+
+tasks:
+  task_arrival_base_rate_per_min: 8.0
+  express_fraction: 0.1
+  standard_sla_deadline_s: 600.0
+  express_sla_deadline_s: 600.0
+
+simulation:
+  duration_hours: 4.0
+  dispatch_interval_s: 2.0
+  metrics_interval_s: 60.0
+  random_seed: 73
