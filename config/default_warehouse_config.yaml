@@ -3,7 +3,7 @@
 
 warehouse:
   n_highways: 4 # Total one-way aisles (must be even; forms 5 pairs)
-  n_aisles: 10 # Storage bays per aisle per highway segment
+  n_aisles: 15 # Storage bays per aisle per highway segment
   n_storage_cells_per_segment: 5
   dist_between_storage_cells_m: 1.5 # Meters between bays along an aisle
 
@@ -27,7 +27,7 @@ tasks:
 
 stations:
   pick_station_capacity: 2
-  charging_station_capacity: 5
+  charging_station_capacity: 3
 
 simulation:
   duration_hours: 4.0

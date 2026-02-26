@@ -341,31 +341,42 @@ class AGV:
         self._set_status(AGVStatus.WAITING)
 
         # Request charging station resource
-        yield from self._request_charging_station_resource(charging_station)
+        # yield from self._request_charging_station_resource(charging_station)
 
-        # Finish waiting and begin charging
-        waiting_time = self.env.now - self.last_wait_start_time
-        self.metrics.waiting_time_s += waiting_time
-
-        # Update AGV status
-        self._set_status(AGVStatus.CHARGING)
-        self.last_charging_start_time = self.env.now
-
-        # Compute charging time
-        time_to_full = (100.0 - self.state.battery_soc.level) / (
-            self.config.battery_charge_rate
+        charging_station_resource = self.charging_station_resources.get(
+            charging_station, None
         )
-        if charging_time is None:
-            charge_time = time_to_full
-        else:
-            charge_time = min(time_to_full, charging_time)
-        yield self.env.timeout(charge_time)
+        if charging_station_resource is None:
+            raise KeyError(
+                f"Missing charging station resource for station {charging_station}"
+            )
 
-        # Charging is complete, update metrics and attributes
-        self.state.battery_soc.put(charge_time * self.config.battery_charge_rate)
-        self.metrics.charging_time_s += self.env.now - self.last_charging_start_time
-        self.metrics.num_charging_visits += 1
-        self.last_charging_start_time = None
+        with charging_station_resource.request() as req:
+            yield req
+
+            # Finish waiting and begin charging
+            waiting_time = self.env.now - self.last_wait_start_time
+            self.metrics.waiting_time_s += waiting_time
+
+            # Update AGV status
+            self._set_status(AGVStatus.CHARGING)
+            self.last_charging_start_time = self.env.now
+
+            # Compute charging time
+            time_to_full = (100.0 - self.state.battery_soc.level) / (
+                self.config.battery_charge_rate
+            )
+            if charging_time is None:
+                charge_time = time_to_full
+            else:
+                charge_time = min(time_to_full, charging_time)
+            yield self.env.timeout(charge_time)
+
+            # Charging is complete, update metrics and attributes
+            self.state.battery_soc.put(charge_time * self.config.battery_charge_rate)
+            self.metrics.charging_time_s += self.env.now - self.last_charging_start_time
+            self.metrics.num_charging_visits += 1
+            self.last_charging_start_time = None
 
     def _pick_items(self, task: Task):
         """Request to access resource at pick station and perform picking"""
@@ -375,21 +386,32 @@ class AGV:
         self._set_status(AGVStatus.WAITING)
 
         # Request a resource at the picking station
-        yield from self._request_pick_station_resource(task.picking_location)
+        # yield from self._request_pick_station_resource()
 
-        # Finish waiting after the resource is obtained
-        waiting_time = self.env.now - self.last_wait_start_time
-        self.metrics.waiting_time_s += waiting_time
-
-        # Update AGV Status
-        self._set_status(AGVStatus.PICKING)
-
-        # Sample picking time
-        picking_time = self.rng.gamma(
-            self.config.picking_time_shape,
-            self.config.picking_time_scale,
+        pick_station_resource = self.pick_station_resources.get(
+            task.picking_location, None
         )
-        yield self.env.timeout(picking_time)
+        if pick_station_resource is None:
+            raise KeyError(
+                f"Missing pick station resource for station {task.picking_location}"
+            )
+
+        with pick_station_resource.request() as req:
+            yield req
+
+            # Finish waiting after the resource is obtained
+            waiting_time = self.env.now - self.last_wait_start_time
+            self.metrics.waiting_time_s += waiting_time
+
+            # Update AGV Status
+            self._set_status(AGVStatus.PICKING)
+
+            # Sample picking time
+            picking_time = self.rng.gamma(
+                self.config.picking_time_shape,
+                self.config.picking_time_scale,
+            )
+            yield self.env.timeout(picking_time)
 
     def run(self):
         """
