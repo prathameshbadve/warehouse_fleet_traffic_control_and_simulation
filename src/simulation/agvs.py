@@ -128,8 +128,8 @@ class AGV:
         start_position: str,
         movement_strategy: Type[MovementStrategy] | None,
         pick_station_resources: Dict[str, simpy.Resource] | None = None,
-        parking_station_resources: Dict[str, simpy.Resource] | None = None,
         charging_station_resources: Dict[str, simpy.Resource] | None = None,
+        # parking_station_resources: Dict[str, simpy.Resource] | None = None,
     ):
         self.env = env
         self.rng = rng
@@ -142,7 +142,7 @@ class AGV:
 
         # Simulation resources
         self.pick_station_resources = pick_station_resources
-        self.parking_station_resources = parking_station_resources
+        # self.parking_station_resources = parking_station_resources
         self.charging_station_resources = charging_station_resources
 
         # AGV Attributes

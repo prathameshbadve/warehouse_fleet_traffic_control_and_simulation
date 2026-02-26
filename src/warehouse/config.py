@@ -74,6 +74,14 @@ class TaskConfig:
 
 
 @dataclass(frozen=True)
+class StationsConfig:
+    """Stations runtime parameters"""
+
+    pick_station_capacity: int = 2
+    charging_station_capacity: int = 5
+
+
+@dataclass(frozen=True)
 class SimulationConfig:
     """Simulation runtime parameters."""
 
@@ -96,6 +104,7 @@ class WarehouseConfig:
     layout: LayoutConfig = field(default_factory=LayoutConfig)
     agv: AGVConfig = field(default_factory=AGVConfig)
     tasks: TaskConfig = field(default_factory=TaskConfig)
+    stations: StationsConfig = field(default_factory=StationsConfig)
     simulation: SimulationConfig = field(default_factory=SimulationConfig)
 
 
@@ -118,5 +127,6 @@ def load_config(path: str | Path) -> WarehouseConfig:
         layout=LayoutConfig(**raw.get("warehouse", {})),
         agv=AGVConfig(**raw.get("agv", {})),
         tasks=TaskConfig(**raw.get("tasks", {})),
+        stations=StationsConfig(**raw.get("stations", {})),
         simulation=SimulationConfig(**raw.get("simulation", {})),
     )

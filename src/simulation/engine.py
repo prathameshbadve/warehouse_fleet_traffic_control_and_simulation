@@ -16,8 +16,8 @@ from src.simulation.tasks import TaskGenerator
 from src.simulation.metrics import SimulationMetrics, MetricsCollector
 from src.simulation.stations import (
     initialize_charging_station_resources,
-    initialize_parking_station_resources,
     initialize_pick_station_resources,
+    # initialize_parking_station_resources,
 )
 
 
@@ -93,14 +93,20 @@ class SimulationEngine:
 
         # Create the simpy resources for the stations
         self.pick_station_resources: Dict[str, simpy.Resource] = (
-            initialize_pick_station_resources(env, pick_stations)
+            initialize_pick_station_resources(
+                env, pick_stations, self.warehouse_config.stations.pick_station_capacity
+            )
         )
         self.charging_station_resources: Dict[str, simpy.Resource] = (
-            initialize_charging_station_resources(env, charging_stations)
+            initialize_charging_station_resources(
+                env,
+                charging_stations,
+                self.warehouse_config.stations.charging_station_capacity,
+            )
         )
-        self.parking_station_resources: Dict[str, simpy.Resource] = (
-            initialize_parking_station_resources(env, parking_stations)
-        )
+        # self.parking_station_resources: Dict[str, simpy.Resource] = (
+        #     initialize_parking_station_resources(env, parking_stations)
+        # )
 
         print("All required SimPy resources initialized successfully...")
 
@@ -122,7 +128,7 @@ class SimulationEngine:
                 movement_strategy=self.movement_strat,
                 pick_station_resources=self.pick_station_resources,
                 charging_station_resources=self.charging_station_resources,
-                parking_station_resources=self.parking_station_resources,
+                # parking_station_resources=self.parking_station_resources,
             )
 
             self.agvs.append(agv)

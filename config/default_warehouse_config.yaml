@@ -25,6 +25,10 @@ tasks:
   standard_sla_deadline_s: 600.0
   express_sla_deadline_s: 600.0
 
+stations:
+  pick_station_capacity: 2
+  charging_station_capacity: 5
+
 simulation:
   duration_hours: 4.0
   dispatch_interval_s: 2.0
