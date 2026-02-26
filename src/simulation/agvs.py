@@ -13,7 +13,7 @@ import simpy
 
 from src.warehouse.config import AGVConfig
 from src.warehouse.graph import WarehouseGraph, NodeType
-from src.simulation.tasks import Task, TaskStatus
+from src.simulation.tasks import Task, TaskStatus, TaskPriority
 
 
 class MovementStrategy(ABC):
@@ -486,7 +486,16 @@ class AGV:
             # Update task state
             task.status = TaskStatus.COMPLETE
             task.complete_time = self.env.now
-            task.metrics.cycle_time_s = task.complete_time - task.release_time
+            cycle_time = task.complete_time - task.release_time
+            task.metrics.cycle_time_s = cycle_time
+
+            if task.priority == TaskPriority.STANDARD:
+                sla = 1200.0
+            else:
+                sla = 600.0
+
+            if cycle_time > sla:
+                task.metrics.delay_s = cycle_time - sla
 
             # Update AGV state and metrics
             self.metrics.tasks_completed += 1

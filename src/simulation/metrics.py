@@ -26,7 +26,8 @@ class Snapshot:
     avg_cycle_time_s: float  # Average cycle time of completed tasks till this time
     agv_utilization_pct: float  # Average utilization of AGVs at this time (0-100%)
     n_agvs_idle: int  # Number of idle AGVs at this time
-    n_agvs_working: int  # Number of AGVs currently working (moving, retrieving, storing, picking) at this time
+    n_agvs_working: int  # Number of AGVs currently working
+    # (moving, retrieving, storing, picking) at this time
     n_agvs_charging: int  # Number of AGVs currently charging at this time
     n_agvs_waiting: (
         int  # Number of AGVs currently waiting (e.g., at a station) at this time
@@ -52,6 +53,9 @@ class SimulationMetrics:
     avg_agv_utilization_pct: float = 0.0
     avg_station_utilization_pct: float = 0.0
     total_distance_travelled_m: float = 0.0
+
+    total_delay_s: float = 0.0
+    avg_task_delay_s: float = 0.0
 
     # Per-AGV summaries
     agv_summaries: dict[str, dict] = field(default_factory=dict)
@@ -196,6 +200,14 @@ class MetricsCollector:
             self.metrics.avg_cycle_time_s = float(np.mean(cycle_times))
             self.metrics.median_cycle_time_s = float(np.median(cycle_times))
             self.metrics.p95_cycle_time_s = float(np.percentile(cycle_times, 95))
+
+        total_delay = 0.0
+        delays = []
+        for task in all_tasks:
+            delays.append(task.metrics.delay_s)
+            total_delay += task.metrics.delay_s
+        self.metrics.total_delay_s = total_delay
+        self.metrics.avg_task_delay_s = float(np.mean(delays))
 
         # AGV-level stats
         total_dist = 0.0

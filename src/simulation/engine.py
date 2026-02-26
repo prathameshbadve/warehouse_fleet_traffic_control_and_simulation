@@ -177,6 +177,8 @@ class SimulationEngine:
         print(f"  P95 cycle time:   {self.metrics.p95_cycle_time_s:.1f}s")
         print(f"  AGV utilization:  {self.metrics.avg_agv_utilization_pct:.1f}%")
         print(f"  Station util:     {self.metrics.avg_station_utilization_pct:.1f}%")
+        print(f"  Total Delay (s):  {self.metrics.total_delay_s:.2f}s")
+        print(f"  Avg Delay (s):    {self.metrics.avg_task_delay_s:.2f}s")
 
         return self.metrics
 

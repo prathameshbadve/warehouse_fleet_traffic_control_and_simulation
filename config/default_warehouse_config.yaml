@@ -22,7 +22,7 @@ agv:
 tasks:
   task_arrival_base_rate_per_min: 8.0
   express_fraction: 0.1
-  standard_sla_deadline_s: 600.0
+  standard_sla_deadline_s: 1200.0
   express_sla_deadline_s: 600.0
 
 stations:
