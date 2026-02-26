@@ -9,10 +9,28 @@ Usage:
 
 import argparse
 from pathlib import Path
+import sys
 
-from src.warehouse.config import WarehouseConfig, SimulationConfig, load_config
-from src.simulation.engine import SimulationEngine
-from src.simulation.agvs import TeleportStrategy
+# Get the parent directory (where pyproject.toml is located)
+cwd = Path.cwd()
+parent_dir = cwd.parent
+for parent in [cwd] + list(cwd.parents):
+    if (parent / "pyproject.toml").exists():
+        parent_dir = parent
+
+# Verify we found the right directory
+# if not (parent_dir / "pyproject.toml").exists():
+#     raise FileNotFoundError(f"pyproject.toml not found in {parent_dir}")
+
+# Add to Python path if not already there
+if str(parent_dir) not in sys.path:
+    sys.path.insert(0, str(parent_dir))
+
+# pylint: disable=wrong-import-position
+from src.warehouse.config import WarehouseConfig, SimulationConfig, load_config  # noqa: E402
+from src.simulation.engine import SimulationEngine  # noqa: E402
+from src.simulation.agvs import TeleportStrategy  # noqa: E402
+# pylint: enable=wrong-import-position
 
 
 def main():
@@ -27,7 +45,7 @@ def main():
         help="Path to warehouse config YAML",
     )
     parser.add_argument(
-        "--n-agvs", type=int, default=50, help="Number of AGVs to deploy"
+        "--n-agvs", type=int, default=20, help="Number of AGVs to deploy"
     )
     parser.add_argument(
         "--hours",
