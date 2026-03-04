@@ -57,7 +57,7 @@ class GridLayoutGenerator:
     We are modeling parallel paths along each edge
     """
 
-    def __init__(self, config: WarehouseConfig) -> None:
+    def __init__(self, config: WarehouseConfig):
         self.layout_config = config.layout
         self.config = config
 
@@ -71,8 +71,6 @@ class GridLayoutGenerator:
             self.layout_config.n_storage_cells_per_segment
         )
         self.n_pick_stations = self.n_highways
-        self.n_charging_stations = self.n_highways
-        # self.n_parking_spots = self.station_config.n_parking_spots
 
         # Derived parameters
         self.distance_between_highways = (
@@ -88,7 +86,7 @@ class GridLayoutGenerator:
             self.n_pick_stations + 1
         )
 
-    def generate(self) -> WarehouseGraph:
+    def generate(self, include_stations: bool = True) -> WarehouseGraph:
         """Build and return the complete warehouse graph."""
         graph = WarehouseGraph()
 
@@ -96,8 +94,11 @@ class GridLayoutGenerator:
         self._add_aisles(graph)
         self._connect_aisles_to_highways(graph)
         self._add_picking_stations(graph)
-        self._add_parking_areas(graph)
-        self._add_charging_stations(graph)
+        self._add_top_highway(graph)
+
+        if include_stations:
+            self._add_parking_areas(graph)
+            self._add_charging_stations(graph)
 
         return graph
 
@@ -178,7 +179,7 @@ class GridLayoutGenerator:
 
                 # Connection 2
                 from_node_id = f"I_H{j + 1}_A{i}"
-                to_node_id = f"S_A{i}_S{j}_C4"
+                to_node_id = f"S_A{i}_S{j}_C{self.n_storage_cells_per_segment - 1}"
                 graph.add_bidirectional_edges(
                     from_node_id,
                     to_node_id,
@@ -301,16 +302,69 @@ class GridLayoutGenerator:
     def _add_charging_stations(self, graph: WarehouseGraph):
         """Add AGV charging stations"""
 
-        # Add Picking Station Nodes & Buffer Highway Nodes
-        for i in range(self.n_charging_stations):
-            node_id = f"CS_{i}"
-            graph.add_node(
-                node_id,
-                node_type=NodeType.CHARGING,
-                x=(i + 1) * self.distance_between_picking_stations,
-                y=self.warehouse_depth + 2 * self.distance_between_aisles,
-            )
+        node_id = "CS0"
+        graph.add_node(
+            node_id,
+            node_type=NodeType.CHARGING,
+            x=-1 * self.distance_between_aisles,
+            y=0.0,
+        )
+        graph.add_bidirectional_edges(
+            node_id,
+            "I_H0_A0",
+            edge_type=EdgeType.STATION_ACCESS,
+            capacity=2,
+        )
 
+        node_id = "CS1"
+        graph.add_node(
+            node_id,
+            node_type=NodeType.CHARGING,
+            x=self.warehouse_width + self.distance_between_aisles,
+            y=0.0,
+        )
+        graph.add_bidirectional_edges(
+            node_id,
+            f"I_H{self.n_highways - 1}_A0",
+            edge_type=EdgeType.STATION_ACCESS,
+            capacity=2,
+        )
+
+        node_id = "CS2"
+        graph.add_node(
+            node_id,
+            node_type=NodeType.CHARGING,
+            x=self.warehouse_width + self.distance_between_aisles,
+            y=self.warehouse_depth,
+        )
+        to_node = f"I_H{self.n_highways - 1}_A{self.n_aisles - 1}"
+        graph.add_bidirectional_edges(
+            node_id,
+            to_node,
+            edge_type=EdgeType.STATION_ACCESS,
+            capacity=2,
+        )
+
+        node_id = "CS3"
+        graph.add_node(
+            node_id,
+            node_type=NodeType.CHARGING,
+            x=-1 * self.distance_between_aisles,
+            y=self.warehouse_depth,
+        )
+        to_node = f"I_H0_A{self.n_aisles - 1}"
+        graph.add_bidirectional_edges(
+            node_id,
+            to_node,
+            edge_type=EdgeType.STATION_ACCESS,
+            capacity=2,
+        )
+
+    def _add_top_highway(self, graph: WarehouseGraph):
+        """Add top level highway"""
+
+        # Add Picking Station Nodes & Buffer Highway Nodes
+        for i in range(self.n_highways):
             buffer_node_id = f"I_BU{i}"
             graph.add_node(
                 buffer_node_id,
@@ -319,16 +373,8 @@ class GridLayoutGenerator:
                 y=self.warehouse_depth + self.distance_between_aisles,
             )
 
-            # Add edges connecting pick stations to buffer highways intersections
-            graph.add_bidirectional_edges(
-                node_id,
-                buffer_node_id,
-                edge_type=EdgeType.STATION_ACCESS,
-                capacity=2,
-            )
-
         # Add buffer highway edges
-        for i in range(self.n_charging_stations - 1):
+        for i in range(self.n_highways - 1):
             from_node_id = f"I_BU{i}"
             to_node_id = f"I_BU{i + 1}"
             graph.add_bidirectional_edges(
@@ -339,7 +385,7 @@ class GridLayoutGenerator:
             )
 
         # Connect buffer highway to vertical highways
-        for i in range(self.n_charging_stations):
+        for i in range(self.n_highways):
             from_node_id = f"I_BU{i}"
             to_node_id = f"I_H{i}_A{self.n_aisles - 1}"
             graph.add_bidirectional_edges(

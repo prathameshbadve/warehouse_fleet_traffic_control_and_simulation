@@ -91,7 +91,7 @@ class SimulationEngine:
         print("\n[Configuration]")
         print(f"  • Fleet Size: {self.n_agvs} AGVs")
         print(f"  • Pick Stations: {self.warehouse_config.layout.n_highways}")
-        print(f"  • Charging Stations: {self.warehouse_config.layout.n_highways}")
+        print("  • Charging Stations: 4 corners")
         print("  • Parking Stations: 4 corners")
         print(
             f"  • Task Arrival Rate: {self.warehouse_config.tasks.task_arrival_base_rate_per_min:.1f} tasks/min"
@@ -104,6 +104,9 @@ class SimulationEngine:
         )
         print(
             f"  • Express SLA: {self.warehouse_config.tasks.express_sla_deadline_s:.0f}s"
+        )
+        print(
+            f"  • Assignment Policy: {self.warehouse_config.simulation.assignment_policy}"
         )
 
         env = simpy.Environment()
@@ -307,27 +310,32 @@ class SimulationEngine:
         """Periodically assign pending tasks to idle AGVs."""
 
         dispatch_interval_s = self.warehouse_config.simulation.dispatch_interval_s
+        policy = self.warehouse_config.simulation.assignment_policy
 
         while True:
             # Get pending tasks
             pending_tasks = task_gen.get_and_clear_pending()
+            idle_agvs = [
+                agv
+                for agv in self.agvs
+                if agv.state.status == AGVStatus.IDLE and agv.state.current_task is None
+            ]
 
-            if pending_tasks:
-                idle_agvs = [
-                    agv
-                    for agv in self.agvs
-                    if agv.state.status == AGVStatus.IDLE
-                    and agv.state.current_task is None
-                ]
-                if idle_agvs:
+            if pending_tasks and idle_agvs:
+                # Simple Assignment: assign based on status and availability
+                if policy == "naive":
                     while len(pending_tasks) > 0 and len(idle_agvs) > 0:
                         chosen_task = pending_tasks.pop(0)
                         chosen_agv = idle_agvs.pop(0)
                         chosen_agv.assign_task(chosen_task)
 
-                # Update the pending tasks in the task generator (if any are left unassigned)
-                if len(pending_tasks) > 0:
-                    task_gen.pending_tasks.extend(pending_tasks)
+                    # Update the pending tasks in the task generator (if any are left unassigned)
+                    if len(pending_tasks) > 0:
+                        task_gen.pending_tasks.extend(pending_tasks)
+
+                # Greedy Assignment
+                # if policy == "greedy":
+                #     assignments = greedy_assignment(pending_tasks, idle_agvs)
 
             yield env.timeout(dispatch_interval_s)
 

@@ -30,7 +30,7 @@ class LayoutConfig:
     """
 
     n_highways: int = 5
-    n_aisles: int = 8
+    n_aisles: int = 15
     n_storage_cells_per_segment: int = 5
     dist_between_storage_cells_m: float = 1.5  # Meters between bays along the aisle
 
@@ -45,7 +45,7 @@ class AGVConfig:
 
     # Battery drain for activities
     battery_drain_without_pod_per_meter: float = 0.08
-    battery_drain_with_pod_per_meter: float = 0.08
+    battery_drain_with_pod_per_meter: float = 0.12
     battery_drain_per_storage_retrieval: float = 0.5
 
     # Operational battery threshold and charging rate
@@ -78,7 +78,7 @@ class StationsConfig:
     """Stations runtime parameters"""
 
     pick_station_capacity: int = 2
-    charging_station_capacity: int = 5
+    charging_station_capacity: int = 3
 
 
 @dataclass(frozen=True)
@@ -89,6 +89,7 @@ class SimulationConfig:
     dispatch_interval_s: float = 5.0  # time between consecutive dispatch decisions
     metrics_interval_s: float = 60.0  # KPI aggregation interval
     random_seed: int = 73  # random seed for reproducibility
+    assignment_policy: str = "naive"
 
     @property
     def duration_s(self) -> float:

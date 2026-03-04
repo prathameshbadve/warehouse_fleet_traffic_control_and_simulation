@@ -58,6 +58,12 @@ class Task:
     complete_time: float | None = None
     metrics: TaskMetrics = field(default_factory=TaskMetrics)
 
+    def compute_cost_objective_after_task_completion(self):
+        """Computes the real objective function value after completing the task"""
+
+        if self.status is not TaskStatus.COMPLETE:
+            return RuntimeError("Task is not complete yet")
+
 
 class TaskGenerator:
     """

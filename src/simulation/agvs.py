@@ -51,6 +51,19 @@ class TeleportStrategy(MovementStrategy):
         yield agv.state.battery_soc.get(battery_drain)
 
 
+# class ResourceStrategy(MovementStrategy):
+#     """
+#     Resource movement strategy
+
+#     AGVs request to occupy the nodes and edges in the path
+#     """
+
+#     def move(self, agv: AGV, travel_time: float, battery_drain: float):
+
+#         with next_edge_resource.request() as req:
+#             yield req
+
+
 class AGVStatus(str, Enum):
     """Valid AGV Status"""
 
