@@ -2,7 +2,7 @@
 # Models an Amazon-style pod storage fulfillment center with paired one-way aisles
 
 warehouse:
-  n_highways: 4 # Total one-way aisles (must be even; forms 5 pairs)
+  n_highways: 5 # Total one-way aisles (must be even; forms 5 pairs)
   n_aisles: 15 # Storage bays per aisle per highway segment
   n_storage_cells_per_segment: 5
   dist_between_storage_cells_m: 1.5 # Meters between bays along an aisle
@@ -34,3 +34,4 @@ simulation:
   dispatch_interval_s: 2.0
   metrics_interval_s: 60.0
   random_seed: 73
+  assignment_policy: naive

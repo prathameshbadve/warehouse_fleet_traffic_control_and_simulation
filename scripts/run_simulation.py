@@ -56,6 +56,12 @@ def main():
     parser.add_argument(
         "--seed", type=int, default=73, help="Random seed (overrides config)"
     )
+    parser.add_argument(
+        "--policy",
+        type=str,
+        default="naive",
+        help="Task assignment policy",
+    )
     args = parser.parse_args()
 
     print(args)
@@ -78,6 +84,9 @@ def main():
             "random_seed": args.seed
             if args.seed is not None
             else config.simulation.random_seed,
+            "assignment_policy": args.policy
+            if args.policy is not None
+            else config.simulation.assignment_policy,
         }
         config = WarehouseConfig(
             layout=config.layout,
